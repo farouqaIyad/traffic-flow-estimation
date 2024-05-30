@@ -8,10 +8,11 @@ from Cookie import *
 import numpy as np
 import torch
 import cv2
-import os 
+import os
 
 COLORS = sv.ColorPalette.default()
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
 
 def initiate_polygon_zones(
     polygons: List[np.ndarray],
@@ -24,13 +25,16 @@ def initiate_polygon_zones(
             frame_resolution_wh=frame_resolution_wh,
             triggering_position=triggering_position,
         )
-       for polygon in polygons
+        for polygon in polygons
     ]
 
+
 cookie = Cookie()
+
+
 def app():
-    get_cookie(cookie,'zones_in')
-    get_cookie(cookie,'zones_out')
+    get_cookie(cookie, "zones_in")
+    get_cookie(cookie, "zones_out")
     processor = VideoProcessor(
         source_weights_path=r"C:\Users\NITRO 5\Desktop\All_JUP\visDrone\best (2).pt",
         source_video_path=r"C:\Users\NITRO 5\Desktop\All_JUP\videos\traffic_analysis.mov",
@@ -40,7 +44,6 @@ def app():
     )
     processor.process_video()
     st.video(r"D:\AA\the jounie project\result_videos\traffic_analysis.mov")
-
 
 
 class VideoProcessor:
@@ -61,11 +64,15 @@ class VideoProcessor:
         self.tracker = sv.ByteTrack()
 
         self.video_info = sv.VideoInfo.from_video_path(source_video_path)
-        self.zones_in = initiate_polygon_zones(get_cookie(cookie,"zones_in")
-            , self.video_info.resolution_wh, sv.Position.CENTER
+        self.zones_in = initiate_polygon_zones(
+            get_cookie(cookie, "zones_in"),
+            self.video_info.resolution_wh,
+            sv.Position.CENTER,
         )
         self.zones_out = initiate_polygon_zones(
-            get_cookie(cookie,"zones_out"), self.video_info.resolution_wh, sv.Position.CENTER
+            get_cookie(cookie, "zones_out"),
+            self.video_info.resolution_wh,
+            sv.Position.CENTER,
         )
 
         self.box_annotator = sv.BoxAnnotator(color=COLORS)
@@ -78,20 +85,26 @@ class VideoProcessor:
         if self.target_video_path:
             vid_cap = cv2.VideoCapture(self.source_video_path)
             writer = None
-            while(vid_cap.isOpened()):
-                success,image = vid_cap.read()
+            while vid_cap.isOpened():
+                success, image = vid_cap.read()
                 if success:
                     annotated_frame = self.process_frame(image)
                     if writer is None:
-                        output = r'result_videos\{}'.format(os.path.basename(self.source_video_path))
-                        fourcc = cv2.VideoWriter_fourcc(*'H264')
-                        writer = cv2.VideoWriter(output,fourcc,vid_cap.get(cv2.CAP_PROP_FPS),(annotated_frame.shape[1],annotated_frame.shape[0]))
+                        output = r"result_videos\{}".format(
+                            os.path.basename(self.source_video_path)
+                        )
+                        fourcc = cv2.VideoWriter_fourcc(*"H264")
+                        writer = cv2.VideoWriter(
+                            output,
+                            fourcc,
+                            vid_cap.get(cv2.CAP_PROP_FPS),
+                            (annotated_frame.shape[1], annotated_frame.shape[0]),
+                        )
                     writer.write(annotated_frame)
                 else:
                     vid_cap.release()
-                    break 
+                    break
             writer.release()
-            
 
     def annotate_frame(
         self, frame: np.ndarray, detections: sv.Detections
@@ -148,8 +161,3 @@ class VideoProcessor:
             detections, detections_in_zones, detections_out_zones
         )
         return self.annotate_frame(frame, detections)
-    
-
-
-
-    
